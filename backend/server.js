@@ -23,17 +23,38 @@ connectDB();
 const app = express();
 const server = http.createServer(app);
 
+// 1. Updated Allowed Origins List
+const allowedOrigins = [
+  "https://project-property-2fko.vercel.app",
+  "http://localhost:5173",
+  process.env.CLIENT_URL
+].filter(Boolean);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, true);
+    }
+  },
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+};
+
+// 2. Setup Socket.io CORS
 const io = new Server(server, {
   cors: {
-    origin: process.env.CLIENT_URL || "http://localhost:5173",
+    origin: allowedOrigins,
     methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true
   },
 });
 
-// Make io accessible in controllers via req.app.get("io")
 app.set("io", io);
 
-app.use(cors({ origin: process.env.CLIENT_URL || "http://localhost:5173" }));
+// 3. Setup Express CORS
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(responseTimeLogger);
 
@@ -54,10 +75,6 @@ app.use("/api/feedback", feedbackRoutes);
 io.on("connection", (socket) => {
   console.log(`Socket connected: ${socket.id}`);
 
-  // Each logged-in client tells the server its user ID once connected,
-  // joining a private room named after that ID. Direct messages are
-  // emitted only to the sender's and receiver's rooms - nobody else
-  // (no other tenant, staff member, etc.) ever receives that event.
   socket.on("identify", (userId) => {
     if (userId) {
       socket.join(userId.toString());
