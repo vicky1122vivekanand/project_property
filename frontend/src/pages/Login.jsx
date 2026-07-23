@@ -70,10 +70,7 @@ const Login = () => {
           </Link>
         </p>
 
-        <div className="mt-8 text-xs text-gray-400 text-center">
-          <p>Demo accounts (after running the seed script):</p>
-          <p>owner@example.com · staff@example.com · tenant@example.com — password123</p>
-        </div>
+
       </div>
     </div>
   );
